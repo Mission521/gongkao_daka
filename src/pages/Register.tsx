@@ -51,7 +51,11 @@ const Register: React.FC = () => {
           throw new Error('创建用户资料失败')
         }
 
-        alert('注册成功！请登录。')
+        if (authData.session) {
+          alert('注册成功！请登录。')
+        } else {
+          alert('注册成功！请前往邮箱查收验证邮件，验证后即可登录。')
+        }
         navigate('/login')
       }
     } catch (err: any) {
