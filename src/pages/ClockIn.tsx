@@ -6,6 +6,7 @@ import { Image, X, Upload } from 'lucide-react'
 
 const ClockIn: React.FC = () => {
   const [content, setContent] = useState('')
+  const [category, setCategory] = useState('日常')
   const [images, setImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -61,6 +62,7 @@ const ClockIn: React.FC = () => {
         {
           user_id: user?.id,
           content: content,
+          category: category,
           images: images,
         },
       ])
@@ -85,6 +87,23 @@ const ClockIn: React.FC = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              打卡类型
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+            >
+              <option value="日常">日常</option>
+              <option value="学习">学习</option>
+              <option value="运动">运动</option>
+              <option value="工作">工作</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               打卡内容
