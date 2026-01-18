@@ -365,6 +365,9 @@ const Stats: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  用户
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   打卡时间
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -382,6 +385,10 @@ const Stats: React.FC = () => {
               {currentItems.length > 0 ? (
                 currentItems.map((record) => (
                   <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{record.users.name || '未知用户'}</div>
+                      <div className="text-xs text-gray-500">{record.users.email}</div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {format(parseISO(record.created_at), 'yyyy-MM-dd HH:mm', { locale: zhCN })}
@@ -404,7 +411,7 @@ const Stats: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
                     暂无符合条件的记录
                   </td>
                 </tr>
