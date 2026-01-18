@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { ArrowLeft } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 interface Announcement {
   id: string
@@ -76,8 +77,8 @@ const AnnouncementDetail: React.FC = () => {
           </time>
         </header>
 
-        <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
-          {announcement.content}
+        <div className="prose max-w-none text-gray-700">
+          <ReactMarkdown>{announcement.content}</ReactMarkdown>
         </div>
       </article>
     </div>
