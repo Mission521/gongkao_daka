@@ -27,30 +27,18 @@ const Register: React.FC = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name: name,
+          }
+        }
       })
 
       if (authError) throw authError
 
       if (authData.user) {
-        // 2. Insert into public.users table
-        const { error: dbError } = await supabase
-          .from('users')
-          .insert([
-            {
-              id: authData.user.id, // Link to Auth User ID
-              email: email,
-              name: name,
-              password_hash: 'managed_by_supabase_auth', // Placeholder
-            }
-          ])
-
-        if (dbError) {
-          // If DB insert fails, we might want to warn the user, but Auth is successful.
-          // In a production app, we might use a Trigger instead to ensure consistency.
-          console.error('Error creating user profile:', dbError)
-          throw new Error('创建用户资料失败')
-        }
-
+        // User profile creation is now handled by database trigger
+        
         if (authData.session) {
           alert('注册成功！请登录。')
         } else {
