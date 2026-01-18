@@ -22,11 +22,19 @@ interface ClockInRecord {
 
 type TimeRange = 'week' | 'month' | 'all'
 
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
 const Stats: React.FC = () => {
   const [records, setRecords] = useState<ClockInRecord[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<TimeRange>('week')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedUser, setSelectedUser] = useState<string>('all')
   const { user } = useAuthStore()
 
   // Pagination state
@@ -34,8 +42,28 @@ const Stats: React.FC = () => {
   const itemsPerPage = 10
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
+        // Log access
+        if (user) {
+          await supabase.from('access_logs').insert([{
+            user_id: user.id,
+            action: 'view_stats',
+            details: { timeRange, selectedCategory, selectedUser }
+          }])
+        }
+
+        // Fetch users for filter
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .order('name')
+        
+        if (usersData) {
+          setUsers(usersData)
+        }
+
+        // Fetch stats
         const { data, error } = await supabase
           .from('clockins')
           .select(`
@@ -55,14 +83,14 @@ const Stats: React.FC = () => {
         if (error) throw error
         setRecords(data as unknown as ClockInRecord[] || [])
       } catch (error) {
-        console.error('Error fetching stats:', error)
+        console.error('Error fetching data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchStats()
-  }, [])
+    fetchData()
+  }, []) // Initial load only, logging on filter change can be separate if needed
 
   // Filter records based on time range and category
   const filteredRecords = useMemo(() => {
@@ -83,75 +111,77 @@ const Stats: React.FC = () => {
       const matchesTime = start && end ? isWithinInterval(recordDate, { start, end }) : true
       const matchesCategory = selectedCategory === 'all' || record.category === selectedCategory
       
-      // For personal stats, we might want to filter by user.id if this page is for personal stats.
-      // But the requirement implies a general stats dashboard or personal. 
-      // Assuming this is "My Stats" based on typical user needs, but previous code showed all users.
-      // Let's stick to showing ALL users' data for admins or general view, but maybe highlight own?
-      // Actually, typically "Stats" page in such app is for the current user. 
-      // Let's filter by current user for "My Stats" view, or keep it global if it's a leader board.
-      // The requirement "User daily/weekly..." implies personal stats. 
-      // Let's filter by current user for the charts/stats, but maybe keep history list global? 
-      // Let's assume Personal Stats for now as it's more common.
-      // WAIT: The previous implementation showed `users.name`, implying it was a global list.
-      // Let's split: Charts show PERSONAL progress. Table shows PERSONAL history (or global if admin).
-      // Given the context of "Clock-in app", usually you want to see your own progress.
-      // I will filter by current user for the charts and stats summary.
+      // Filter by selected user
+      // We match by email because clockins join uses email, and we fetched users list.
+      // But wait, records join with users, so records have users.name and users.email.
+      // We can filter by email.
+      const matchesUser = selectedUser === 'all' || record.users.email === selectedUser
       
-      const isMyRecord = user ? record.users.email === user.email : true // Fallback if no user logged in (shouldn't happen due to AuthGuard)
-      return matchesTime && matchesCategory && isMyRecord
+      return matchesTime && matchesCategory && matchesUser
     })
-  }, [records, timeRange, selectedCategory, user])
+  }, [records, timeRange, selectedCategory, selectedUser])
 
   // Calculate Statistics
   const stats = useMemo(() => {
-    const myRecords = records.filter(r => user && r.users.email === user.email)
+    // If specific user selected, calculate their stats.
+    // If 'all' selected, calculate aggregate stats (e.g. total clockins of everyone).
     
     // Total count
-    const totalCount = myRecords.length
+    const totalCount = filteredRecords.length
 
-    // Sort by date asc for streak calculation
-    const sortedRecords = [...myRecords].sort((a, b) => new Date(a.clockin_date).getTime() - new Date(b.clockin_date).getTime())
-    
-    // Calculate streaks
+    // Calculate streaks (Only meaningful for single user)
     let currentStreak = 0
     let longestStreak = 0
-    let tempStreak = 0
-    let lastDate: Date | null = null
-
-    for (const record of sortedRecords) {
-      const currentDate = parseISO(record.clockin_date)
+    
+    if (selectedUser !== 'all') {
+      const sortedRecords = [...filteredRecords].sort((a, b) => new Date(a.clockin_date).getTime() - new Date(b.clockin_date).getTime())
       
-      if (!lastDate) {
-        tempStreak = 1
-      } else {
-        const diff = differenceInDays(currentDate, lastDate)
-        if (diff === 1) {
-          tempStreak++
-        } else if (diff > 1) {
-          longestStreak = Math.max(longestStreak, tempStreak)
-          tempStreak = 1
-        }
-        // If diff === 0 (same day), do nothing
-      }
-      lastDate = currentDate
-    }
-    longestStreak = Math.max(longestStreak, tempStreak)
+      let tempStreak = 0
+      let lastDate: Date | null = null
 
-    // Check if current streak is active (today or yesterday clocked in)
-    const today = new Date()
-    if (lastDate && differenceInDays(today, lastDate) <= 1) {
-      currentStreak = tempStreak
-    } else {
-      currentStreak = 0
+      for (const record of sortedRecords) {
+        const currentDate = parseISO(record.clockin_date)
+        
+        if (!lastDate) {
+          tempStreak = 1
+        } else {
+          const diff = differenceInDays(currentDate, lastDate)
+          if (diff === 1) {
+            tempStreak++
+          } else if (diff > 1) {
+            longestStreak = Math.max(longestStreak, tempStreak)
+            tempStreak = 1
+          }
+        }
+        lastDate = currentDate
+      }
+      longestStreak = Math.max(longestStreak, tempStreak)
+
+      const today = new Date()
+      if (lastDate && differenceInDays(today, lastDate) <= 1) {
+        currentStreak = tempStreak
+      }
     }
+
+    // Completion Rate (Simplified logic)
+    // For 'all': Average clock-ins per day? Or just total count.
+    // Let's use a target: 1 per day.
+    let targetDays = 30
+    if (timeRange === 'week') targetDays = 7
+    // For 'all', target is targetDays * totalUsers (approx)
+    // Let's keep it simple: Show count for All, Rate for Individual.
+    
+    const completionRate = selectedUser !== 'all' 
+      ? ((totalCount / targetDays) * 100).toFixed(1) 
+      : '-'
 
     return {
       totalCount,
-      currentStreak,
-      longestStreak,
-      completionRate: totalCount > 0 ? ((totalCount / 30) * 100).toFixed(1) : 0 // Assuming 30 days target for demo
+      currentStreak: selectedUser !== 'all' ? currentStreak : '-',
+      longestStreak: selectedUser !== 'all' ? longestStreak : '-',
+      completionRate
     }
-  }, [records, user])
+  }, [filteredRecords, selectedUser, timeRange])
 
   // Chart Data Preparation
   const chartOption = useMemo(() => {
@@ -275,6 +305,17 @@ const Stats: React.FC = () => {
           </div>
           
           <div className="flex gap-4">
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+            >
+              <option value="all">所有成员</option>
+              {users.map(u => (
+                <option key={u.id} value={u.email}>{u.name || u.email}</option>
+              ))}
+            </select>
+
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
