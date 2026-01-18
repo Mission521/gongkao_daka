@@ -29,7 +29,14 @@ const Login: React.FC = () => {
         navigate('/')
       }
     } catch (err: any) {
-      setError(err.message || '登录失败，请检查邮箱和密码')
+      console.error('Login error:', err)
+      let message = err.message || '登录失败，请检查邮箱和密码'
+      if (message.includes('Email not confirmed')) {
+        message = '您的邮箱尚未验证，请检查您的邮箱（包括垃圾邮件）并点击验证链接。'
+      } else if (message.includes('Invalid login credentials')) {
+        message = '账号或密码错误'
+      }
+      setError(message)
     } finally {
       setLoading(false)
     }
