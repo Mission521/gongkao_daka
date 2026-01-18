@@ -77,7 +77,7 @@ const AnnouncementDetail: React.FC = () => {
           </time>
         </header>
 
-        <div className="prose max-w-none text-gray-700">
+        <div className="prose prose-blue max-w-none">
           <ReactMarkdown>{announcement.content}</ReactMarkdown>
         </div>
       </article>
