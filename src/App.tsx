@@ -9,9 +9,11 @@ import ClockIn from './pages/ClockIn'
 import Announcements from './pages/Announcements'
 import AnnouncementDetail from './pages/AnnouncementDetail'
 import CreateAnnouncement from './pages/CreateAnnouncement'
+import EditAnnouncement from './pages/EditAnnouncement'
 import Records from './pages/Records'
 import Stats from './pages/Stats'
 import OCR from './pages/OCR'
+import EditClockIn from './pages/EditClockIn'
 
 const App: React.FC = () => {
   return (
@@ -28,6 +30,11 @@ const App: React.FC = () => {
               <CreateAnnouncement />
             </AuthGuard>
           } />
+          <Route path="announcements/edit/:id" element={
+            <AuthGuard>
+              <EditAnnouncement />
+            </AuthGuard>
+          } />
           
           {/* Protected Routes */}
           <Route path="clock-in" element={
@@ -38,6 +45,11 @@ const App: React.FC = () => {
           <Route path="records" element={
             <AuthGuard>
               <Records />
+            </AuthGuard>
+          } />
+          <Route path="clock-in/edit/:id" element={
+            <AuthGuard>
+              <EditClockIn />
             </AuthGuard>
           } />
           <Route path="stats" element={
