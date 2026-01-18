@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import { Plus } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 interface Announcement {
@@ -17,6 +17,26 @@ const Announcements: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
+  const navigate = useNavigate()
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation
+    if (!window.confirm('确定要删除这条公告吗？')) return
+
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id))
+    } catch (error) {
+      console.error('Error deleting announcement:', error)
+      alert('删除失败')
+    }
+  }
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -64,11 +84,34 @@ const Announcements: React.FC = () => {
       <div className="space-y-4">
         {announcements.length > 0 ? (
           announcements.map((announcement) => (
-            <div key={announcement.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+            <div key={announcement.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow relative group">
               <Link to={`/announcement/${announcement.id}`} className="block">
-                <h3 className="text-xl font-bold text-gray-800 mb-2 hover:text-primary transition-colors">
-                  {announcement.title}
-                </h3>
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xl font-bold text-gray-800 mb-2 hover:text-primary transition-colors pr-16">
+                    {announcement.title}
+                  </h3>
+                  {user && (
+                    <div className="flex gap-2 absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          navigate(`/announcements/edit/${announcement.id}`)
+                        }}
+                        className="p-1 text-gray-500 hover:text-primary hover:bg-gray-100 rounded"
+                        title="编辑"
+                      >
+                        <Pencil size={18} />
+                      </button>
+                      <button
+                        onClick={(e) => handleDelete(announcement.id, e)}
+                        className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded"
+                        title="删除"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <p className="text-gray-600 line-clamp-3 mb-4">
                   {announcement.content}
                 </p>
