@@ -4,6 +4,8 @@ import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
 import { Image, X, Upload } from 'lucide-react'
 
+import { useUIStore } from '../store/uiStore'
+
 const ClockIn: React.FC = () => {
   const [content, setContent] = useState('')
   const [category, setCategory] = useState('日常')
@@ -11,6 +13,7 @@ const ClockIn: React.FC = () => {
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const { user } = useAuthStore()
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,11 +72,31 @@ const ClockIn: React.FC = () => {
 
       if (error) throw error
 
-      alert('打卡成功！')
+      // Add success toast
+      addToast({
+        title: '打卡成功',
+        message: '您的打卡记录已成功保存',
+        type: 'success'
+      })
+
+      // Add notification
+      await supabase.from('notifications').insert([
+        {
+          user_id: user?.id,
+          title: '打卡成功',
+          content: `您已完成今日打卡：${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`,
+          type: 'success'
+        }
+      ])
+
       navigate('/')
     } catch (error) {
       console.error('Error submitting clock-in:', error)
-      alert('打卡失败，请重试')
+      addToast({
+        title: '打卡失败',
+        message: '提交过程中发生错误，请重试',
+        type: 'error'
+      })
     } finally {
       setSubmitting(false)
     }

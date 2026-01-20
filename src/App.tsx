@@ -14,6 +14,7 @@ import Records from './pages/Records'
 import Stats from './pages/Stats'
 import OCR from './pages/OCR'
 import EditClockIn from './pages/EditClockIn'
+import Messages from './pages/Messages'
 
 const App: React.FC = () => {
   return (
@@ -55,6 +56,11 @@ const App: React.FC = () => {
           <Route path="stats" element={
             <AuthGuard>
               <Stats />
+            </AuthGuard>
+          } />
+          <Route path="messages" element={
+            <AuthGuard>
+              <Messages />
             </AuthGuard>
           } />
           <Route path="ocr" element={
