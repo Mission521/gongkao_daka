@@ -2,12 +2,45 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../supabaseClient'
-import { Menu, X, LogOut, User as UserIcon } from 'lucide-react'
+import { Menu, X, LogOut, User as UserIcon, Bell } from 'lucide-react'
 
 export const Navbar: React.FC = () => {
   const { user, setUser } = useAuthStore()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // Fetch unread count
+  React.useEffect(() => {
+    if (!user) return
+
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+      
+      setUnreadCount(count || 0)
+    }
+
+    fetchUnreadCount()
+    
+    // Subscribe to new notifications
+    const subscription = supabase
+      .channel('notifications')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`
+      }, fetchUnreadCount)
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [user])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -42,6 +75,14 @@ export const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center gap-4">
+                <Link to="/messages" className="relative text-gray-600 hover:text-primary transition-colors">
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
                 <span className="text-sm text-gray-600 flex items-center gap-1">
                   <UserIcon size={16} />
                   {user.email}
@@ -84,6 +125,14 @@ export const Navbar: React.FC = () => {
             <Link to="/announcements" className="text-gray-600 hover:text-primary" onClick={toggleMenu}>公告</Link>
             {user && (
               <>
+                <Link to="/messages" className="flex items-center justify-between text-gray-600 hover:text-primary" onClick={toggleMenu}>
+                  <span>消息中心</span>
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
                 <Link to="/clock-in" className="text-gray-600 hover:text-primary" onClick={toggleMenu}>打卡</Link>
                 <Link to="/records" className="text-gray-600 hover:text-primary" onClick={toggleMenu}>记录</Link>
                 <Link to="/stats" className="text-gray-600 hover:text-primary" onClick={toggleMenu}>统计</Link>

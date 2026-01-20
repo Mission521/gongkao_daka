@@ -5,6 +5,8 @@ import { useAuthStore } from '../store/authStore'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { Pencil, Trash2 } from 'lucide-react'
+import { useUIStore } from '../store/uiStore'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 interface ClockIn {
   id: string
@@ -17,23 +19,35 @@ const Records: React.FC = () => {
   const [records, setRecords] = useState<ClockIn[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('确定要删除这条打卡记录吗？')) return
+  const confirmDelete = async () => {
+    if (!deleteId) return
 
     try {
       const { error } = await supabase
         .from('clockins')
         .delete()
-        .eq('id', id)
+        .eq('id', deleteId)
 
       if (error) throw error
 
-      setRecords((prev) => prev.filter((r) => r.id !== id))
+      setRecords((prev) => prev.filter((r) => r.id !== deleteId))
+      addToast({
+        title: '删除成功',
+        type: 'success'
+      })
     } catch (error) {
       console.error('Error deleting record:', error)
-      alert('删除失败')
+      addToast({
+        title: '删除失败',
+        message: '操作未能完成，请重试',
+        type: 'error'
+      })
+    } finally {
+      setDeleteId(null)
     }
   }
 
@@ -90,7 +104,7 @@ const Records: React.FC = () => {
                     <Pencil size={18} />
                   </button>
                   <button
-                    onClick={() => handleDelete(record.id)}
+                    onClick={() => setDeleteId(record.id)}
                     className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded"
                     title="删除"
                   >
@@ -122,6 +136,17 @@ const Records: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="删除确认"
+        message="您确定要删除这条打卡记录吗？此操作无法撤销。"
+        confirmText="确认删除"
+        cancelText="取消"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteId(null)}
+        type="danger"
+      />
     </div>
   )
 }
