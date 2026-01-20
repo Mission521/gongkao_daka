@@ -55,7 +55,9 @@ export const NotificationPopover: React.FC = () => {
           setUnreadCount(count || 0)
         }
       } catch (error: any) {
-        if (error.name !== 'AbortError') {
+        if (error.name === 'AbortError' || error.message?.includes('Aborted')) {
+          // Ignore abort errors
+        } else {
           console.error('Error fetching unread count:', error)
         }
       }
@@ -86,18 +88,26 @@ export const NotificationPopover: React.FC = () => {
   const fetchNotifications = async () => {
     if (!user) return
     setLoading(true)
+    
+    // Abort previous fetch if exists (not implemented here but good to know)
+    // For simplicity, we just fetch.
+    
     try {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(20) // Limit to recent 20 for performance in popover
+        .limit(20)
       
       if (error) throw error
       setNotifications(data || [])
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('Aborted')) {
+        // Ignore
+      } else {
+        console.error('Error fetching notifications:', error)
+      }
     } finally {
       setLoading(false)
     }
