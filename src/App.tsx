@@ -14,6 +14,8 @@ import Records from './pages/Records'
 import Stats from './pages/Stats'
 import OCR from './pages/OCR'
 import EditClockIn from './pages/EditClockIn'
+import Profile from './pages/Profile'
+import ForgotPassword from './pages/ForgotPassword'
 
 const App: React.FC = () => {
   return (
@@ -23,6 +25,7 @@ const App: React.FC = () => {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="announcements" element={<Announcements />} />
           <Route path="announcement/:id" element={<AnnouncementDetail />} />
           <Route path="announcements/create" element={
@@ -60,6 +63,11 @@ const App: React.FC = () => {
           <Route path="ocr" element={
             <AuthGuard>
               <OCR />
+            </AuthGuard>
+          } />
+          <Route path="profile" element={
+            <AuthGuard>
+              <Profile />
             </AuthGuard>
           } />
         </Route>

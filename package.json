@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "check": "tsc -b --noEmit",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "deploy:aliyun": "bash deploy.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",

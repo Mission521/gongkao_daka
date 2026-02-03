@@ -75,6 +75,11 @@ const Login: React.FC = () => {
             placeholder="********"
             required
           />
+          <div className="flex justify-end mt-1">
+            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+              忘记密码？
+            </Link>
+          </div>
         </div>
 
         <button

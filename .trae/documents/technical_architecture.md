@@ -22,24 +22,27 @@ graph TD
 
 ## 2. 技术描述
 
-- 前端：React@18 + Tailwind CSS@3 + Vite
-- 初始化工具：vite-init
-- 后端：Supabase（提供认证、数据库、存储服务）
-- 部署：GitHub Pages（静态托管）
+* 前端：React\@18 + Tailwind CSS\@3 + Vite
+
+* 初始化工具：vite-init
+
+* 后端：Supabase（提供认证、数据库、存储服务）
+
+* 部署：GitHub Pages（静态托管）
 
 ## 3. 路由定义
 
-| 路由 | 用途 |
-|------|------|
-| / | 首页，显示公告和打卡信息 |
-| /login | 登录页面 |
-| /register | 注册页面 |
-| /clock-in | 打卡页面 |
-| /announcements | 公告列表页面 |
-| /announcement/:id | 公告详情页面 |
-| /records | 打卡记录页面 |
-| /stats | 统计表格页面 |
-| /ocr | OCR信息录入页面 |
+| 路由                | 用途           |
+| ----------------- | ------------ |
+| /                 | 首页，显示公告和打卡信息 |
+| /login            | 登录页面         |
+| /register         | 注册页面         |
+| /clock-in         | 打卡页面         |
+| /announcements    | 公告列表页面       |
+| /announcement/:id | 公告详情页面       |
+| /records          | 打卡记录页面       |
+| /stats            | 统计表格页面       |
+| /ocr              | OCR信息录入页面    |
 
 ## 4. 数据模型
 
@@ -82,6 +85,7 @@ erDiagram
 ### 4.2 数据定义语言
 
 用户表 (users)
+
 ```sql
 -- 创建表
 CREATE TABLE users (
@@ -99,6 +103,7 @@ CREATE INDEX idx_users_email ON users(email);
 ```
 
 打卡记录表 (clockins)
+
 ```sql
 -- 创建表
 CREATE TABLE clockins (
@@ -117,6 +122,7 @@ CREATE INDEX idx_clockins_date ON clockins(clockin_date DESC);
 ```
 
 公告表 (announcements)
+
 ```sql
 -- 创建表
 CREATE TABLE announcements (
@@ -155,13 +161,20 @@ CREATE POLICY "Users can update own clockins" ON clockins FOR UPDATE USING (auth
 ## 5. OCR功能实现
 
 OCR文字识别功能将使用浏览器端JavaScript库实现，无需后端支持：
-- 使用Tesseract.js进行文字识别
-- 图片上传使用Supabase Storage存储
-- 识别结果保存到用户配置表中
+
+* 使用Tesseract.js进行文字识别
+
+* 图片上传使用Supabase Storage存储
+
+* 识别结果保存到用户配置表中
 
 ## 6. 部署配置
 
 GitHub Pages部署配置：
-- 使用GitHub Actions自动构建和部署
-- 配置Vite的base路径为仓库名
-- 环境变量存储在GitHub Secrets中
+
+* 使用GitHub Actions自动构建和部署
+
+* 配置Vite的base路径为仓库名
+
+* 环境变量存储在GitHub Secrets中
+
