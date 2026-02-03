@@ -100,15 +100,6 @@ export const Navbar: React.FC = () => {
                             <Settings size={16} />
                             个人设置
                           </Link>
-                          
-                          <Link 
-                            to="/profile" 
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary rounded-md transition-colors"
-                            onClick={() => setIsUserDropdownOpen(false)}
-                          >
-                            <Lock size={16} />
-                            修改密码
-                          </Link>
 
                           <div className="my-1 border-t border-gray-50"></div>
 
@@ -180,15 +171,6 @@ export const Navbar: React.FC = () => {
                   >
                     <Settings size={18} />
                     个人设置
-                  </Link>
-
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center gap-2 px-2 py-2 text-gray-600 hover:bg-gray-50 hover:text-primary rounded-md"
-                    onClick={toggleMenu}
-                  >
-                    <Lock size={18} />
-                    修改密码
                   </Link>
 
                   <button
