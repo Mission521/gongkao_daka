@@ -19,6 +19,9 @@ diagnose.sh
 fix_ssl.sh
 README_DEPLOY.md
 
+# Supabase migrations
+supabase/migrations/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
