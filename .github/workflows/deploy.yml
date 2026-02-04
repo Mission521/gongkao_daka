@@ -1,9 +1,10 @@
 name: Deploy to Aliyun ACR
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
 
 env:
   # 修改为你的阿里云镜像仓库地址
