@@ -33,3 +33,4 @@ supabase/migrations/
 *.sln
 *.sw?
 .env.deploy
+.env

@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
 import { User, CheckCircle, XCircle, Loader2, Edit2, Save, X } from 'lucide-react'
 import { cn } from '../utils/cn'
+import { PasswordInput } from '../components/PasswordInput'
 
 // Debounce helper
 const useDebounce = (value: string, delay: number) => {
@@ -329,40 +330,28 @@ const Profile: React.FC = () => {
           )}
 
           <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">当前密码</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                required
-              />
-            </div>
+            <PasswordInput
+              label="当前密码"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">新密码</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                required
-                minLength={6}
-              />
-            </div>
+            <PasswordInput
+              label="新密码"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              minLength={6}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">确认新密码</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                required
-                minLength={6}
-              />
-            </div>
+            <PasswordInput
+              label="确认新密码"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+            />
 
             <button
               type="submit"

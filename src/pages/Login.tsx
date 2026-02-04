@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
+import { PasswordInput } from '../components/PasswordInput'
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -65,21 +66,18 @@ const Login: React.FC = () => {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">密码</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="********"
-            required
-          />
-          <div className="flex justify-end mt-1">
-            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-              忘记密码？
-            </Link>
-          </div>
+        <PasswordInput
+          label="密码"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="********"
+          required
+        />
+
+        <div className="flex justify-end mt-1">
+          <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+            忘记密码？
+          </Link>
         </div>
 
         <button
