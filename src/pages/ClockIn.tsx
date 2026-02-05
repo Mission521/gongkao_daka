@@ -2,9 +2,10 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { Image, X, Upload } from 'lucide-react'
+import { Image, X, Upload, Save } from 'lucide-react'
 
 import { useUIStore } from '../store/uiStore'
+import { useDraft } from '../hooks/useDraft'
 
 const ClockIn: React.FC = () => {
   const [content, setContent] = useState('')
@@ -15,6 +16,30 @@ const ClockIn: React.FC = () => {
   const { user } = useAuthStore()
   const { addToast } = useUIStore()
   const navigate = useNavigate()
+
+  const { 
+    saveDraft, 
+    clearDraft, 
+    updateDraftData, 
+    saving: savingDraft, 
+    lastSaved 
+  } = useDraft({
+    pageType: 'clock-in',
+    initialData: { content: '', category: '日常', images: [] },
+    onRecover: (data: any) => {
+      setContent(data.content || '')
+      setCategory(data.category || '日常')
+      setImages(data.images || [])
+    },
+    isEmpty: (data: any) => {
+      // Content must be non-empty string (trimmed) or have images
+      return (!data.content || data.content.trim() === '') && (!data.images || data.images.length === 0)
+    }
+  })
+
+  React.useEffect(() => {
+    updateDraftData({ content, category, images })
+  }, [content, category, images, updateDraftData])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -88,6 +113,8 @@ const ClockIn: React.FC = () => {
           type: 'success'
         }
       ])
+
+      await clearDraft()
 
       navigate('/')
     } catch (error) {
@@ -183,7 +210,23 @@ const ClockIn: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-4 items-center">
+            {lastSaved && (
+              <span className="text-sm text-gray-500">
+                {savingDraft ? '保存中...' : `上次保存: ${lastSaved.toLocaleTimeString()}`}
+              </span>
+            )}
+            
+            <button
+              type="button"
+              onClick={() => saveDraft({ content, category, images }, true)}
+              disabled={savingDraft || !content.trim()}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <Save size={18} />
+              保存草稿
+            </button>
+
             <button
               type="submit"
               disabled={submitting || !content.trim()}

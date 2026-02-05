@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
+import { Save } from 'lucide-react'
+import { useDraft } from '../hooks/useDraft'
 
 const CreateAnnouncement: React.FC = () => {
   const [title, setTitle] = useState('')
@@ -9,6 +11,31 @@ const CreateAnnouncement: React.FC = () => {
   const [submitting, setSubmitting] = useState(false)
   const { user } = useAuthStore()
   const navigate = useNavigate()
+
+  const { 
+    saveDraft, 
+    clearDraft, 
+    updateDraftData, 
+    saving: savingDraft, 
+    lastSaved 
+  } = useDraft({
+    pageType: 'announcement',
+    initialData: { title: '', content: '' },
+    onRecover: (data: any) => {
+      setTitle(data.title || '')
+      setContent(data.content || '')
+    },
+    isEmpty: (data: any) => {
+      // Both title and content must be empty to consider it empty
+      // Or maybe if content is empty, it's not worth saving?
+      // Let's say if BOTH are empty/whitespace, then it's empty.
+      return (!data.title || data.title.trim() === '') && (!data.content || data.content.trim() === '')
+    }
+  })
+
+  React.useEffect(() => {
+    updateDraftData({ title, content })
+  }, [title, content, updateDraftData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,6 +54,7 @@ const CreateAnnouncement: React.FC = () => {
 
       if (error) throw error
 
+      await clearDraft()
       alert('公告发布成功！')
       navigate('/announcements')
     } catch (error) {
@@ -70,7 +98,23 @@ const CreateAnnouncement: React.FC = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-4 items-center">
+            {lastSaved && (
+              <span className="text-sm text-gray-500">
+                {savingDraft ? '保存中...' : `上次保存: ${lastSaved.toLocaleTimeString()}`}
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={() => saveDraft({ title, content }, true)}
+              disabled={savingDraft || !title.trim() || !content.trim()}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <Save size={18} />
+              保存草稿
+            </button>
+
             <button
               type="button"
               onClick={() => navigate('/announcements')}

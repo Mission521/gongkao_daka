@@ -39,7 +39,7 @@ export const Navbar: React.FC = () => {
     <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-xl font-bold text-primary flex items-center gap-2" title="Version: 1.0.5">
+          <Link to="/" className="text-xl font-bold text-primary flex items-center gap-2" title="Version: 1.0.7">
             <span>打卡助手</span>
           </Link>
 
