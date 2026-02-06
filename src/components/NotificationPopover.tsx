@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Bell, Check, Trash2, Mail, MessageSquare, Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Bell, Check, Trash2, Mail, Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../supabaseClient'
 import { formatDistanceToNow } from 'date-fns'
@@ -35,6 +35,34 @@ export const NotificationPopover: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return
+    setLoading(true)
+    
+    // Abort previous fetch if exists (not implemented here but good to know)
+    // For simplicity, we just fetch.
+    
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      
+      if (error) throw error
+      setNotifications(data || [])
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('Aborted')) {
+        // Ignore
+      } else {
+        console.error('Error fetching notifications:', error)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
 
   // Fetch unread count & setup subscription
   useEffect(() => {
@@ -83,42 +111,14 @@ export const NotificationPopover: React.FC = () => {
       controller.abort()
       subscription.unsubscribe()
     }
-  }, [user, isOpen])
-
-  const fetchNotifications = async () => {
-    if (!user) return
-    setLoading(true)
-    
-    // Abort previous fetch if exists (not implemented here but good to know)
-    // For simplicity, we just fetch.
-    
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20)
-      
-      if (error) throw error
-      setNotifications(data || [])
-    } catch (error: any) {
-      if (error.name === 'AbortError' || error.message?.includes('Aborted')) {
-        // Ignore
-      } else {
-        console.error('Error fetching notifications:', error)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [user, isOpen, fetchNotifications])
 
   // Fetch notifications when opening
   useEffect(() => {
     if (isOpen) {
       fetchNotifications()
     }
-  }, [isOpen])
+  }, [isOpen, fetchNotifications])
 
   const markAsRead = async (id: string) => {
     try {
@@ -208,7 +208,7 @@ export const NotificationPopover: React.FC = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+            className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
           >
             {/* Header */}
             <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
