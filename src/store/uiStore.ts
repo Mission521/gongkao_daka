@@ -6,6 +6,10 @@ export interface Toast {
   message?: string
   type: 'success' | 'error' | 'info' | 'warning'
   duration?: number
+  action?: {
+    label: string
+    onClick: () => void
+  }
 }
 
 interface UIStore {

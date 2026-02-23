@@ -67,7 +67,11 @@ const ClockIn: React.FC = () => {
       }
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('图片上传失败，请重试')
+      addToast({
+        title: '上传失败',
+        message: '图片上传失败，请重试',
+        type: 'error'
+      })
     } finally {
       setUploading(false)
       // Clear input

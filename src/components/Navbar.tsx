@@ -6,6 +6,7 @@ import { Menu, X, LogOut, User as UserIcon, ChevronDown, Settings } from 'lucide
 import { NotificationPopover } from './NotificationPopover'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../utils/cn'
+import { APP_VERSION } from '../config/version'
 
 export const Navbar: React.FC = () => {
   const { user, setUser } = useAuthStore()
@@ -39,9 +40,9 @@ export const Navbar: React.FC = () => {
     <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-xl font-bold text-primary flex items-center gap-2" title="Version: 1.1.0">
+          <Link to="/" className="text-xl font-bold text-primary flex items-center gap-2" title={`Version: ${APP_VERSION}`}>
             <span>打卡助手</span>
-            <span className="text-xs text-gray-400 font-normal mt-1.5">v1.1.0</span>
+            <span className="text-xs text-gray-400 font-normal mt-1.5">v{APP_VERSION}</span>
           </Link>
 
           {/* Desktop Menu */}

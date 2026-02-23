@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
+import { useUIStore } from '../store/uiStore'
 import { User, CheckCircle, XCircle, Loader2, Edit2, Save, X } from 'lucide-react'
 import { cn } from '../utils/cn'
 import { PasswordInput } from '../components/PasswordInput'
@@ -17,6 +18,7 @@ const useDebounce = (value: string, delay: number) => {
 
 const Profile: React.FC = () => {
   const { user, setUser } = useAuthStore()
+  const { addToast } = useUIStore()
   
   // --- Password Change State ---
   const [currentPassword, setCurrentPassword] = useState('')
@@ -150,13 +152,13 @@ const Profile: React.FC = () => {
       setCurrentUsername(newUsername)
       setIsEditingUsername(false)
       setUsernameMessage('')
-      alert('用户名修改成功！')
+      addToast({ type: 'success', title: '成功', message: '用户名修改成功！' })
       
     } catch (err: any) {
       console.error('Update username error:', err)
       // Only show alert if it's not handled by status
       if (err.message !== '用户名已被占用') {
-        alert('修改失败: ' + (err.message || '未知错误'))
+        addToast({ type: 'error', title: '错误', message: '修改失败: ' + (err.message || '未知错误') })
       }
     } finally {
       setUsernameLoading(false)

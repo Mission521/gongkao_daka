@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { PasswordInput } from '../components/PasswordInput'
 
+import { useUIStore } from '../store/uiStore'
+
 const Register: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -10,6 +12,7 @@ const Register: React.FC = () => {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -38,15 +41,25 @@ const Register: React.FC = () => {
       if (authError) throw authError
 
       if (authData.user) {
-        // User profile creation is now handled by database trigger
-        
-        if (authData.session) {
-          alert('注册成功！请登录。')
-        } else {
-          alert('注册成功！请前往邮箱查收验证邮件，验证后即可登录。')
+          // User profile creation is now handled by database trigger
+          
+          if (authData.session) {
+            addToast({
+              title: '注册成功',
+              message: '请登录',
+              type: 'info', // Using info type for blue color (typically) or success for green. User asked for blue.
+              duration: 2000
+            })
+          } else {
+            addToast({
+              title: '注册成功',
+              message: '请前往邮箱查收验证邮件，验证后即可登录',
+              type: 'info',
+              duration: 2000
+            })
+          }
+          navigate('/login')
         }
-        navigate('/login')
-      }
     } catch (err: any) {
       setError(err.message || '注册失败，请稍后重试')
     } finally {

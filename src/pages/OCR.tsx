@@ -3,6 +3,7 @@ import Tesseract from 'tesseract.js'
 import { Upload, FileText, Save, Copy } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
+import { useUIStore } from '../store/uiStore'
 import { useNavigate } from 'react-router-dom'
 
 const OCR: React.FC = () => {
@@ -11,6 +12,7 @@ const OCR: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const { user } = useAuthStore()
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +42,7 @@ const OCR: React.FC = () => {
       setText(result.data.text)
     } catch (error) {
       console.error('OCR Error:', error)
-      alert('识别失败，请重试')
+      addToast({ type: 'error', title: '识别失败', message: '识别失败，请重试' })
     } finally {
       setLoading(false)
     }
@@ -48,7 +50,7 @@ const OCR: React.FC = () => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(text)
-    alert('已复制到剪贴板')
+    addToast({ type: 'success', title: '复制成功', message: '已复制到剪贴板' })
   }
 
   const handleSaveAsClockIn = async () => {
@@ -63,11 +65,11 @@ const OCR: React.FC = () => {
       ])
 
       if (error) throw error
-      alert('已保存到打卡记录')
+      addToast({ type: 'success', title: '保存成功', message: '已保存到打卡记录' })
       navigate('/')
     } catch (error) {
       console.error('Error saving OCR result:', error)
-      alert('保存失败，请重试')
+      addToast({ type: 'error', title: '保存失败', message: '保存失败，请重试' })
     }
   }
 

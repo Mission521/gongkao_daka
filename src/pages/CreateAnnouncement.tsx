@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
 import { Save } from 'lucide-react'
+import { useUIStore } from '../store/uiStore'
 import { useDraft } from '../hooks/useDraft'
 
 const CreateAnnouncement: React.FC = () => {
@@ -10,6 +11,7 @@ const CreateAnnouncement: React.FC = () => {
   const [content, setContent] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { user } = useAuthStore()
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
 
   const { 
@@ -55,11 +57,20 @@ const CreateAnnouncement: React.FC = () => {
       if (error) throw error
 
       await clearDraft()
-      alert('公告发布成功！')
+      addToast({
+        title: '发布成功',
+        message: '公告已成功发布',
+        type: 'success',
+        duration: 3000
+      })
       navigate('/announcements')
     } catch (error) {
       console.error('Error creating announcement:', error)
-      alert('发布失败，请重试')
+      addToast({
+        title: '发布失败',
+        message: '请稍后重试',
+        type: 'error'
+      })
     } finally {
       setSubmitting(false)
     }

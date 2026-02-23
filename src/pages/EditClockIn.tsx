@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
+import { useUIStore } from '../store/uiStore'
 import { X, Upload } from 'lucide-react'
 
 const EditClockIn: React.FC = () => {
@@ -13,6 +14,7 @@ const EditClockIn: React.FC = () => {
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,7 +32,7 @@ const EditClockIn: React.FC = () => {
         
         // Verify ownership
         if (data.user_id !== user.id) {
-          alert('无权编辑此记录')
+          addToast({ type: 'error', title: '权限错误', message: '无权编辑此记录' })
           navigate('/records')
           return
         }
@@ -42,7 +44,7 @@ const EditClockIn: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching clockin:', error)
-        alert('获取记录失败')
+        addToast({ type: 'error', title: '错误', message: '获取记录失败' })
         navigate('/records')
       } finally {
         setLoading(false)
@@ -50,7 +52,7 @@ const EditClockIn: React.FC = () => {
     }
 
     fetchClockIn()
-  }, [id, user, navigate])
+  }, [id, user, navigate, addToast])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -78,7 +80,7 @@ const EditClockIn: React.FC = () => {
       }
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('图片上传失败，请重试')
+      addToast({ type: 'error', title: '上传失败', message: '图片上传失败，请重试' })
     } finally {
       setUploading(false)
       e.target.value = ''
@@ -107,11 +109,11 @@ const EditClockIn: React.FC = () => {
 
       if (error) throw error
 
-      alert('打卡记录更新成功！')
+      addToast({ type: 'success', title: '成功', message: '打卡记录更新成功！' })
       navigate('/records')
     } catch (error) {
       console.error('Error updating clock-in:', error)
-      alert('更新失败，请重试')
+      addToast({ type: 'error', title: '错误', message: '更新失败，请重试' })
     } finally {
       setSubmitting(false)
     }

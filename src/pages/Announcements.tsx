@@ -5,6 +5,8 @@ import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
+import { useUIStore } from '../store/uiStore'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 interface Announcement {
   id: string
@@ -17,24 +19,43 @@ const Announcements: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault() // Prevent navigation
-    if (!window.confirm('确定要删除这条公告吗？')) return
+  // Delete dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; id: string | null; title: string }>({
+    isOpen: false,
+    id: null,
+    title: '',
+  })
+
+  const handleDeleteClick = (announcement: Announcement, e: React.MouseEvent) => {
+    e.preventDefault()
+    setDeleteDialog({
+      isOpen: true,
+      id: announcement.id,
+      title: announcement.title,
+    })
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteDialog.id) return
 
     try {
       const { error } = await supabase
         .from('announcements')
         .delete()
-        .eq('id', id)
+        .eq('id', deleteDialog.id)
 
       if (error) throw error
 
-      setAnnouncements((prev) => prev.filter((a) => a.id !== id))
+      setAnnouncements((prev) => prev.filter((a) => a.id !== deleteDialog.id))
+      addToast({ type: 'success', title: '删除成功', message: '公告已成功删除' })
     } catch (error) {
       console.error('Error deleting announcement:', error)
-      alert('删除失败')
+      addToast({ type: 'error', title: '删除失败', message: '操作未能完成，请重试' })
+    } finally {
+      setDeleteDialog({ isOpen: false, id: null, title: '' })
     }
   }
 
@@ -103,7 +124,7 @@ const Announcements: React.FC = () => {
                         <Pencil size={18} />
                       </button>
                       <button
-                        onClick={(e) => handleDelete(announcement.id, e)}
+                        onClick={(e) => handleDeleteClick(announcement, e)}
                         className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded"
                         title="删除"
                       >
@@ -127,6 +148,21 @@ const Announcements: React.FC = () => {
           </div>
         )}
       </div>
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        title="删除确认"
+        message={
+          <div>
+            <p>您确定要删除公告 <span className="font-bold text-gray-800">"{deleteDialog.title}"</span> 吗？</p>
+            <p className="text-gray-500 mt-1">此操作无法撤销。</p>
+          </div>
+        }
+        confirmText="确认删除"
+        cancelText="取消"
+        type="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteDialog({ isOpen: false, id: null, title: '' })}
+      />
     </div>
   )
 }

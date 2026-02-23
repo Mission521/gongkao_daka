@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuthStore } from '../store/authStore'
+import { useUIStore } from '../store/uiStore'
 
 const EditAnnouncement: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -10,6 +11,7 @@ const EditAnnouncement: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const { user } = useAuthStore()
+  const { addToast } = useUIStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,7 +32,7 @@ const EditAnnouncement: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching announcement:', error)
-        alert('获取公告失败')
+        addToast({ type: 'error', title: '错误', message: '获取公告失败' })
         navigate('/announcements')
       } finally {
         setLoading(false)
@@ -38,7 +40,7 @@ const EditAnnouncement: React.FC = () => {
     }
 
     fetchAnnouncement()
-  }, [id, navigate])
+  }, [id, navigate, addToast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,11 +59,11 @@ const EditAnnouncement: React.FC = () => {
 
       if (error) throw error
 
-      alert('公告更新成功！')
+      addToast({ type: 'success', title: '成功', message: '公告更新成功！' })
       navigate('/announcements')
     } catch (error) {
       console.error('Error updating announcement:', error)
-      alert('更新失败，请重试')
+      addToast({ type: 'error', title: '错误', message: '更新失败，请重试' })
     } finally {
       setSubmitting(false)
     }
